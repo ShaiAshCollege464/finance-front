@@ -29,10 +29,16 @@ function App() {
                         }}/>
                         <>
                             <button onClick={() => {
-                                axios.get("http://localhost:9030/fm1/start")
+                                axios.get("http://localhost:9030/fm1/start", {
+                                    params: {
+                                        id: "123456",
+                                        name: "Gaya",
+                                    }
+                                })
                                     .then(response => {
                                         alert(response.data.error)
                                     })}}
+
                             >Next</button>
                         </>
                     </>
