@@ -104,7 +104,7 @@ function App() {
                 {
                     step === 2 &&
                     <>
-                    Analyze:
+                    Analyze the answers:
                     </>
                 }
 
@@ -112,5 +112,20 @@ function App() {
         </>
     )
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export default App
