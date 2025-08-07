@@ -11,6 +11,7 @@ function App() {
     const [answers, setAnswers] = useState({});
 
     useEffect(() => {
+        console.log("START");
         axios.get("http://localhost:9030/fm1/questions", {
             params: {
                 phone: phoneNumber,
