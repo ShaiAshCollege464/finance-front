@@ -1,0 +1,178 @@
+/* ============== Base & Tokens ============== */
+:root {
+    --font-base: "Assistant", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    --font-heading: "Heebo", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+
+    /* Light – חם ועשיר יותר */
+    --bg: #FFFCF6;          /* רקע שמנתי חם */
+    --surface: #FFFFFF;     /* כרטיסים לבנים נקיים */
+    --text: #0A1428;        /* טקסט כהה וברור */
+    --muted: #556274;       /* משני עמוק */
+    --primary: #0B8A6A;     /* ירוק “כסף” */
+    --primary-600: #0A7258; /* להובר */
+    --accent: #C7A22A;      /* זהב מודגש */
+    --accent-600: #A8851F;  /* זהב כהה */
+
+    --success: #10B981;
+    --warn: #F59E0B;
+    --danger: #EF4444;
+
+    --line: #E6E1D8;        /* קווי גבול חמים */
+    --line-soft: #F1EBE0;
+
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 10px;
+    --shadow-xs: 0 1px 3px rgba(10,20,40,.06);
+    --shadow-sm: 0 6px 18px rgba(10,20,40,.07);
+    --shadow-md: 0 12px 34px rgba(10,20,40,.12);
+
+    --s1:.25rem; --s2:.5rem; --s3:.75rem; --s4:1rem; --s6:1.5rem; --s8:2rem; --s12:3rem;
+
+    --t: .2s cubic-bezier(.2,.8,.2,1);
+}
+
+/* נגיעת זהב עדינה ברקע/כרטיסים */
+body {
+    background:
+            radial-gradient(1100px 800px at 85% -10%, rgba(199,162,42,.08), transparent 55%),
+            linear-gradient(180deg, rgba(199,162,42,.03), transparent 30%),
+            var(--bg);
+}
+.topbar {
+    background:
+            linear-gradient(180deg, rgba(199,162,42,.08), transparent 50%),
+            var(--surface);
+    border-bottom: 1px solid var(--line);
+}
+.card {
+    background:
+            linear-gradient(180deg, rgba(199,162,42,.04), transparent 60%),
+            var(--surface);
+    border: 1px solid var(--line);
+}
+/* למקם את כפתור מצב הבהיר/כהה בפינה */
+.theme-toggle {
+    position: absolute;
+    top: 1rem;
+    right: 1rem; /* ב-RTL זו הפינה העליונה הימנית */
+    z-index: 1000;
+    opacity: 0.2; /* חצי שקוף */
+    transition: opacity 0.2s ease;
+}
+
+.theme-toggle:hover {
+    opacity: 1; /* מופיע מלא רק במעבר עכבר */
+}
+
+
+/* Dark theme – Wealth Boutique */
+[data-theme="dark"] {
+    --bg: #0B0F14;
+    --surface: #111723;
+    --text: #E7EAEE;
+    --muted: #9AA3B2;
+    --primary: #22C1C3;
+    --primary-600: #11A6A8;
+    --accent: #C9A548;
+    --accent-600: #B18E3E;
+    --line: rgba(231,234,238,.12);
+    --line-soft: rgba(231,234,238,.06);
+    --shadow-xs: 0 1px 3px rgba(0,0,0,.35);
+    --shadow-sm: 0 8px 24px rgba(0,0,0,.4);
+    --shadow-md: 0 18px 40px rgba(0,0,0,.5);
+}
+
+/* ============== Reset-ish ============== */
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: var(--font-base);
+    color: var(--text);
+    background: radial-gradient(1200px 800px at 80% -10%, rgba(212,175,55,.06), transparent 50%) , var(--bg);
+    line-height: 1.55;
+    transition: background var(--t), color var(--t);
+}
+
+/* ============== Layout Shell ============== */
+.topbar {
+    display:flex; align-items:center; justify-content:space-between;
+    padding: var(--s3) var(--s6);
+    background: linear-gradient(180deg, rgba(212,175,55,.06), transparent), var(--surface);
+    border-bottom: 1px solid var(--line);
+    box-shadow: var(--shadow-xs);
+}
+.brand {
+    display:flex; align-items:center; gap: var(--s3);
+    font-family: var(--font-heading);
+    font-weight: 700; font-size: 1.1rem;
+}
+.brand__mark {
+    width: 34px; height: 34px; border-radius: 10px;
+    background:
+            linear-gradient(135deg, rgba(212,175,55,.30), rgba(212,175,55,.05)),
+            linear-gradient(180deg, rgba(34,193,195,.15), transparent);
+    box-shadow: inset 0 0 0 1px rgba(212,175,55,.25), 0 6px 14px rgba(15,23,42,.08);
+}
+
+/* ============== Buttons ============== */
+.btn {
+    display:inline-flex; align-items:center; gap:.5rem;
+    padding: .65rem 1rem; border-radius: 999px;
+    border: 1px solid transparent;
+    font-weight: 600;
+    transition: background var(--t), color var(--t), border-color var(--t);
+    cursor: pointer;
+}
+.btn--primary { background: var(--primary); color: #fff; }
+.btn--primary:hover { background: var(--primary-600); }
+
+/* ============== Inputs ============== */
+.input {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: .65rem .8rem;
+    background: var(--surface);
+    color: var(--text);
+}
+.input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(212,175,55,.22);
+}
+
+/* ============== Theme Toggle ============== */
+.theme-toggle {
+    display:inline-flex; align-items:center; gap:.5rem;
+    padding: .4rem .6rem; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--surface); cursor: pointer;
+}
+.theme-toggle__dot {
+    width: 22px; height: 22px; border-radius: 999px;
+    background: radial-gradient(8px 8px at 30% 30%, rgba(212,175,55,.8), transparent 60%);
+}
+[data-theme="dark"] .theme-toggle__dot {
+    background: radial-gradient(7px 7px at 65% 35%, rgba(201,165,72,.9), transparent 60%);
+}
+/* RTL alignment for Hebrew */
+html[dir="rtl"] body {
+    direction: rtl;
+    text-align: right;
+}
+
+html[dir="rtl"] .section-title,
+html[dir="rtl"] .section-sub,
+html[dir="rtl"] label,
+html[dir="rtl"] input,
+html[dir="rtl"] button {
+    text-align: right;
+}
+
+html[dir="rtl"] .nav a:hover {
+    transform: translateX(-2px); /* דחיפה לצד ימין במקום שמאלה */
+}
+
+html[dir="rtl"] .grid {
+    direction: rtl;
+}
