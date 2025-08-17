@@ -21,6 +21,9 @@ function App() {
             .catch(() => setQuestions([]));
     }, []);
 
+
+
+
     // מתג כהה/בהיר + תווית בעברית
     useEffect(() => {
         const root = document.documentElement;
