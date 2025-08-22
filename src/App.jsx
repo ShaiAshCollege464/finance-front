@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import axios from "axios";
 import "./finance-agent.css";
 
@@ -86,29 +86,42 @@ function App() {
     // הקצאות לפוליסה
     const allocationsPolicyMid = (s) => {
         switch (s) {
-            case 5: return { מניות: 20, כללי: 80 };
-            case 4: return { כללי: 100 };
-            case 3: return { כללי: 80, סולידי: 20 };
-            case 2: return { כללי: 50, סולידי: 50 };
-            case 1: return { כללי: 20, סולידי: 80 };
-            default: return null;
+            case 5:
+                return {מניות: 20, כללי: 80};
+            case 4:
+                return {כללי: 100};
+            case 3:
+                return {כללי: 80, סולידי: 20};
+            case 2:
+                return {כללי: 50, סולידי: 50};
+            case 1:
+                return {כללי: 20, סולידי: 80};
+            default:
+                return null;
         }
     };
     const allocationsPolicyLong = (s) => {
         switch (s) {
-            case 5: return { מניות: 60, "S&P 500": 40 };
-            case 4: return { מניות: 80, כללי: 20 };
-            case 3: return { מניות: 50, כללי: 50 };
-            case 2: return { כללי: 80, סולידי: 20 };
-            case 1: return { כללי: 50, סולידי: 50 };
-            default: return null;
+            case 5:
+                return {מניות: 60, "S&P 500": 40};
+            case 4:
+                return {מניות: 80, כללי: 20};
+            case 3:
+                return {מניות: 50, כללי: 50};
+            case 2:
+                return {כללי: 80, סולידי: 20};
+            case 1:
+                return {כללי: 50, סולידי: 50};
+            default:
+                return null;
         }
     };
 
     // חישוב המלצה
     const computeRecommendation = () => {
         const amount = parseAmount(answers.amount);
-        if (!Number.isFinite(amount)) return { error: "אנא הזן סכום תקין" };
+        console.log("AAA", answers)
+        if (!Number.isFinite(amount)) return {error: "אנא הזן סכום תקין"};
 
         let primaryProduct = null;
         let adjustedAmount = amount;
@@ -117,55 +130,91 @@ function App() {
         if (amount > THRESH_POLICY) primaryProduct = "POLICY";
         else if (amount < THRESH_GMI) primaryProduct = "GMI";
         else {
-            if (answers.splitNextYear === "YES") { adjustedAmount = THRESH_GMI; primaryProduct = "GMI"; notes.push("הפקדה מחולקת לשתי שנות מס."); }
-            else if (answers.splitNextYear === "NO") primaryProduct = "POLICY";
-            else return { error: "נא לבחור האם לפרוס חלק מההפקדה לשנה הבאה" };
+            if (answers.splitNextYear === "YES") {
+                adjustedAmount = THRESH_GMI;
+                primaryProduct = "GMI";
+                notes.push("הפקדה מחולקת לשתי שנות מס.");
+            } else if (answers.splitNextYear === "NO") primaryProduct = "POLICY";
+            else return {error: "נא לבחור האם לפרוס חלק מההפקדה לשנה הבאה"};
         }
 
         const horizon = Number(answers.horizonYears);
         const goal = answers.goal;
         const productHeb = (c) => c === "GMI" ? "קופת גמל להשקעה" : c === "POLICY" ? "פוליסת חיסכון" : "השארת הכסף בבנק";
 
-        const result = { product: productHeb(primaryProduct), reason: "", horizon, allocations: null, track: null, notes, adjustedAmount };
+        const result = {
+            product: productHeb(primaryProduct),
+            reason: "",
+            horizon,
+            allocations: null,
+            track: null,
+            notes,
+            adjustedAmount
+        };
 
         if (primaryProduct === "GMI") {
-            if (!Number.isFinite(horizon)) return { error: "אנא הזן אופק השקעה (שנים)" };
-            if (horizon < 3) { result.product = "השארת הכסף בבנק"; result.reason = "אופק קצר."; return result; }
-            if (!goal) return { error: "נא לבחור מטרה להשקעה" };
+            if (!Number.isFinite(horizon)) return {error: "אנא הזן אופק השקעה (שנים)"};
+            if (horizon < 3) {
+                result.product = "השארת הכסף בבנק";
+                result.reason = "אופק קצר.";
+                return result;
+            }
+            if (!goal) return {error: "נא לבחור מטרה להשקעה"};
             if (goal === "SELF_CAPITAL") {
-                if (!answers.hasEmergencyFund) return { error: "נא לציין האם יש לך קרן חירום" };
-                result.track = "מסלול מנייתי"; result.reason = "התאמה למטרה.";
+                if (!answers.hasEmergencyFund) return {error: "נא לציין האם יש לך קרן חירום"};
+                result.track = "מסלול מנייתי";
+                result.reason = "התאמה למטרה.";
                 if (answers.hasEmergencyFund === "NO" && answers.willingAdjustForEmergency === "YES") notes.push("שקול להפריש חלק לקרן חירום.");
                 return result;
             }
             if (goal === "GOAL_EVENT" || goal === "PROPERTY") {
-                if (horizon < 3) { result.product = "השארת הכסף בבנק"; result.reason = "אופק קצר."; return result; }
-                else if (horizon <= 5) { result.track = "מסלול כללי"; result.reason = "אופק בינוני."; return result; }
-                else { result.track = "מסלול מנייתי"; result.reason = "אופק ארוך."; return result; }
+                if (horizon < 3) {
+                    result.product = "השארת הכסף בבנק";
+                    result.reason = "אופק קצר.";
+                    return result;
+                } else if (horizon <= 5) {
+                    result.track = "מסלול כללי";
+                    result.reason = "אופק בינוני.";
+                    return result;
+                } else {
+                    result.track = "מסלול מנייתי";
+                    result.reason = "אופק ארוך.";
+                    return result;
+                }
             }
         }
 
         if (primaryProduct === "POLICY") {
-            if (!answers.hasExperience) return { error: "נא לציין האם יש לך ניסיון בהשקעות" };
-            if (!answers.lossReaction) return { error: "נא לבחור תגובה צפויה להפסד" };
-            if (!riskScore) return { error: "לא ניתן לגזור פרופיל – בדוק את הבחירות" };
-            if (!goal) return { error: "נא לבחור מטרה להשקעה" };
+            if (!answers.hasExperience) return {error: "נא לציין האם יש לך ניסיון בהשקעות"};
+            if (!answers.lossReaction) return {error: "נא לבחור תגובה צפויה להפסד"};
+            if (!riskScore) return {error: "לא ניתן לגזור פרופיל – בדוק את הבחירות"};
+            if (!goal) return {error: "נא לבחור מטרה להשקעה"};
 
             if (goal === "SELF_CAPITAL") {
-                if (!answers.hasEmergencyFund) return { error: "נא לציין האם יש לך קרן חירום" };
+                if (!answers.hasEmergencyFund) return {error: "נא לציין האם יש לך קרן חירום"};
                 result.reason = "התאמה למטרה.";
                 result.allocations = allocationsPolicyLong(riskScore) || allocationsPolicyMid(riskScore);
                 if (answers.hasEmergencyFund === "NO" && answers.willingAdjustForEmergency === "YES") notes.push("שקול להפריש חלק לקרן חירום.");
                 return result;
             }
 
-            if (!Number.isFinite(horizon)) return { error: "אנא הזן אופק השקעה (שנים)" };
-            if (horizon < 3) { result.product = "השארת הכסף בבנק"; result.reason = "אופק קצר."; return result; }
-            else if (horizon <= 5) { result.reason = "אופק בינוני."; result.allocations = allocationsPolicyMid(riskScore); return result; }
-            else { result.reason = "אופק ארוך."; result.allocations = allocationsPolicyLong(riskScore); return result; }
+            if (!Number.isFinite(horizon)) return {error: "אנא הזן אופק השקעה (שנים)"};
+            if (horizon < 3) {
+                result.product = "השארת הכסף בבנק";
+                result.reason = "אופק קצר.";
+                return result;
+            } else if (horizon <= 5) {
+                result.reason = "אופק בינוני.";
+                result.allocations = allocationsPolicyMid(riskScore);
+                return result;
+            } else {
+                result.reason = "אופק ארוך.";
+                result.allocations = allocationsPolicyLong(riskScore);
+                return result;
+            }
         }
 
-        return { error: "לא ניתן לגזור המלצה – בדוק את הנתונים" };
+        return {error: "לא ניתן לגזור המלצה – בדוק את הנתונים"};
     };
 
     // רצף שאלות
@@ -174,9 +223,15 @@ function App() {
         const amount = parseAmount(answers.amount);
         if (Number.isFinite(amount) && amount >= THRESH_GMI && amount <= THRESH_POLICY) f.push("splitNextYear");
         f.push("goal");
-        if (answers.goal === "SELF_CAPITAL") { f.push("hasEmergencyFund"); if (answers.hasEmergencyFund === "NO") f.push("willingAdjustForEmergency"); }
+        if (answers.goal === "SELF_CAPITAL") {
+            f.push("hasEmergencyFund");
+            if (answers.hasEmergencyFund === "NO") f.push("willingAdjustForEmergency");
+        }
         if (route === "GMI") f.push("horizonYears");
-        if (route === "POLICY") { f.push("hasExperience","lossReaction"); if (answers.goal && answers.goal !== "SELF_CAPITAL") f.push("horizonYears"); }
+        if (route === "POLICY") {
+            f.push("hasExperience", "lossReaction");
+            if (answers.goal && answers.goal !== "SELF_CAPITAL") f.push("horizonYears");
+        }
         return f;
     }, [answers.amount, answers.goal, answers.hasEmergencyFund, answers.willingAdjustForEmergency, route]);
 
@@ -186,15 +241,24 @@ function App() {
 
     const isCurrentAnswered = () => {
         switch (currentKey) {
-            case "amount": return Number.isFinite(parseAmount(answers.amount)) && parseAmount(answers.amount) > 0;
-            case "splitNextYear": return !!answers.splitNextYear;
-            case "goal": return !!answers.goal;
-            case "hasEmergencyFund": return !!answers.hasEmergencyFund;
-            case "willingAdjustForEmergency": return !!answers.willingAdjustForEmergency;
-            case "horizonYears": return !!answers.horizonYears && Number(answers.horizonYears) >= 0;
-            case "hasExperience": return !!answers.hasExperience;
-            case "lossReaction": return !!answers.lossReaction;
-            default: return true;
+            case "amount":
+                return Number.isFinite(parseAmount(answers.amount)) && parseAmount(answers.amount) > 0;
+            case "splitNextYear":
+                return !!answers.splitNextYear;
+            case "goal":
+                return !!answers.goal;
+            case "hasEmergencyFund":
+                return !!answers.hasEmergencyFund;
+            case "willingAdjustForEmergency":
+                return !!answers.willingAdjustForEmergency;
+            case "horizonYears":
+                return !!answers.horizonYears && Number(answers.horizonYears) >= 0;
+            case "hasExperience":
+                return !!answers.hasExperience;
+            case "lossReaction":
+                return !!answers.lossReaction;
+            default:
+                return true;
         }
     };
 
@@ -202,15 +266,79 @@ function App() {
     useEffect(() => {
         if (step !== 1) return;
         const handler = (e) => {
-            if (e.key === "Enter" && isCurrentAnswered()) { if (qIndex < flow.length - 1) nextQuestion(); else submitAnswers(); }
-            if (["1","2","3"].includes(e.key)) {
+            if (e.key === "Enter" && isCurrentAnswered()) {
+                if (qIndex < flow.length - 1) nextQuestion(); else submitAnswers();
+            }
+            if (["1", "2", "3"].includes(e.key)) {
                 const i = Number(e.key) - 1;
-                if (currentKey === "splitNextYear") { if (i===0){setA("splitNextYear","YES");nextQuestion();} if(i===1){setA("splitNextYear","NO");nextQuestion();} }
-                if (currentKey === "goal") { if(i===0){setA("goal","SELF_CAPITAL");nextQuestion();} if(i===1){setA("goal","GOAL_EVENT");nextQuestion();} if(i===2){setA("goal","PROPERTY");nextQuestion();} }
-                if (currentKey === "hasEmergencyFund") { if(i===0){setA("hasEmergencyFund","YES");nextQuestion();} if(i===1){setA("hasEmergencyFund","NO");nextQuestion();} }
-                if (currentKey === "willingAdjustForEmergency") { if(i===0){setA("willingAdjustForEmergency","YES");nextQuestion();} if(i===1){setA("willingAdjustForEmergency","NO");nextQuestion();} }
-                if (currentKey === "hasExperience") { if(i===0){setA("hasExperience","YES");nextQuestion();} if(i===1){setA("hasExperience","NO");nextQuestion();} }
-                if (currentKey === "lossReaction") { if(i===0){setA("lossReaction","PANIC");nextQuestion();} if(i===1){setA("lossReaction","UNDERSTAND");nextQuestion();} if(i===2){setA("lossReaction","UNKNOWN");nextQuestion();} }
+                if (currentKey === "splitNextYear") {
+                    if (i === 0) {
+                        setA("splitNextYear", "YES");
+                        nextQuestion();
+                    }
+                    if (i === 1) {
+                        setA("splitNextYear", "NO");
+                        nextQuestion();
+                    }
+                }
+                if (currentKey === "goal") {
+                    if (i === 0) {
+                        setA("goal", "SELF_CAPITAL");
+                        nextQuestion();
+                    }
+                    if (i === 1) {
+                        setA("goal", "GOAL_EVENT");
+                        nextQuestion();
+                    }
+                    if (i === 2) {
+                        setA("goal", "PROPERTY");
+                        nextQuestion();
+                    }
+                }
+                if (currentKey === "hasEmergencyFund") {
+                    if (i === 0) {
+                        setA("hasEmergencyFund", "YES");
+                        nextQuestion();
+                    }
+                    if (i === 1) {
+                        setA("hasEmergencyFund", "NO");
+                        nextQuestion();
+                    }
+                }
+                if (currentKey === "willingAdjustForEmergency") {
+                    if (i === 0) {
+                        setA("willingAdjustForEmergency", "YES");
+                        nextQuestion();
+                    }
+                    if (i === 1) {
+                        setA("willingAdjustForEmergency", "NO");
+                        nextQuestion();
+                    }
+                }
+                if (currentKey === "hasExperience") {
+                    if (i === 0) {
+                        setA("hasExperience", "YES");
+                        nextQuestion();
+                    }
+                    if (i === 1) {
+                        setA("hasExperience", "NO");
+                        nextQuestion();
+                    }
+                }
+                if (currentKey === "lossReaction") {
+                    if (i === 0) {
+                        setA("lossReaction", "PANIC");
+                        nextQuestion();
+                    }
+                    if (i === 1) {
+                        setA("lossReaction", "UNDERSTAND");
+                        nextQuestion();
+                    }
+                    if (i === 2) {
+                        setA("lossReaction", "UNKNOWN");
+                        nextQuestion();
+                    }
+                }
             }
             if (e.key === "Backspace" && !String(getCurrentValue()).length) prevQuestion();
         };
@@ -220,41 +348,60 @@ function App() {
 
     const getCurrentValue = () => {
         switch (currentKey) {
-            case "amount": return answers.amount;
-            case "splitNextYear": return answers.splitNextYear;
-            case "goal": return answers.goal;
-            case "hasEmergencyFund": return answers.hasEmergencyFund;
-            case "willingAdjustForEmergency": return answers.willingAdjustForEmergency;
-            case "horizonYears": return answers.horizonYears;
-            case "hasExperience": return answers.hasExperience;
-            case "lossReaction": return answers.lossReaction;
-            default: return "";
+            case "amount":
+                return answers.amount;
+            case "splitNextYear":
+                return answers.splitNextYear;
+            case "goal":
+                return answers.goal;
+            case "hasEmergencyFund":
+                return answers.hasEmergencyFund;
+            case "willingAdjustForEmergency":
+                return answers.willingAdjustForEmergency;
+            case "horizonYears":
+                return answers.horizonYears;
+            case "hasExperience":
+                return answers.hasExperience;
+            case "lossReaction":
+                return answers.lossReaction;
+            default:
+                return "";
         }
     };
 
     const submitAnswers = async () => {
         const recommendation = computeRecommendation();
         try {
-            await axios.get("/fm1/submit", { params: { userId, data: JSON.stringify({ answers, recommendation }) } });
-        } catch {}
+            await axios.post(
+                `http://localhost:9030/fm1/submit?userId=${encodeURIComponent(userId)}`,
+                { answers, recommendation }, // raw JSON body
+                {
+                    headers: { "Content-Type": "application/json" }
+                }
+            );
+        } catch (err) {
+            console.error(err);
+        }
         setStep(2);
     };
 
     // UI
     const amountRef = useRef(null);
-    useEffect(() => { if (currentKey === "amount") amountRef.current?.focus(); }, [currentKey]);
+    useEffect(() => {
+        if (currentKey === "amount") amountRef.current?.focus();
+    }, [currentKey]);
 
-    const Section = ({ title, sub, children }) => (
+    const Section = ({title, sub, children}) => (
         <div className="card card--elev center fade-in">
             <h2 className="section-title">{title}</h2>
             {sub && <p className="section-sub">{sub}</p>}
-            <div style={{marginTop:10}}>{children}</div>
+            <div style={{marginTop: 10}}>{children}</div>
         </div>
     );
 
     const Stepper = () => (
         <div className="stepper" aria-label="התקדמות שאלון">
-            {flow.map((_, i) => <div key={i} className={`stepper__dot ${i <= qIndex ? "is-active" : ""}`} />)}
+            {flow.map((_, i) => <div key={i} className={`stepper__dot ${i <= qIndex ? "is-active" : ""}`}/>)}
         </div>
     );
 
@@ -270,7 +417,9 @@ function App() {
                         placeholder="לדוגמה: 50,000"
                         value={answers.amount}
                         onChange={(e) => setA("amount", e.target.value)}
-                        onKeyDown={(e) => { if (e.key === "Enter" && isCurrentAnswered()) nextQuestion(); }}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && isCurrentAnswered()) nextQuestion();
+                        }}
                     />
                     <div className="hint">אפשר ללחוץ Enter להמשך</div>
                 </Section>
@@ -284,8 +433,18 @@ function App() {
                     sub={`קופת גמל להשקעה מוגבלת לתקרה שנתית של ${gmiCeiling} ₪. כדי להימנע ממעבר לפוליסת חיסכון (שלרוב דמי הניהול בה גבוהים יותר), אפשר להשקיע כעת עד התקרה ואת היתרה בשנת המס הבאה.`}
                 >
                     <div className="choice" role="radiogroup" aria-label="פריסה לשנה הבאה">
-                        <button className={`btn choice__btn ${answers.splitNextYear === "YES" ? "is-selected" : ""}`} aria-pressed={answers.splitNextYear === "YES"} onClick={() => { setA("splitNextYear", "YES"); nextQuestion(); }}>1. כן</button>
-                        <button className={`btn choice__btn ${answers.splitNextYear === "NO" ? "is-selected" : ""}`} aria-pressed={answers.splitNextYear === "NO"} onClick={() => { setA("splitNextYear", "NO"); nextQuestion(); }}>2. לא</button>
+                        <button className={`btn choice__btn ${answers.splitNextYear === "YES" ? "is-selected" : ""}`}
+                                aria-pressed={answers.splitNextYear === "YES"} onClick={() => {
+                            setA("splitNextYear", "YES");
+                            nextQuestion();
+                        }}>1. כן
+                        </button>
+                        <button className={`btn choice__btn ${answers.splitNextYear === "NO" ? "is-selected" : ""}`}
+                                aria-pressed={answers.splitNextYear === "NO"} onClick={() => {
+                            setA("splitNextYear", "NO");
+                            nextQuestion();
+                        }}>2. לא
+                        </button>
                     </div>
                     <div className="hint">אפשר ללחוץ 1/2 לבחירה</div>
                 </Section>
@@ -295,9 +454,24 @@ function App() {
             return (
                 <Section title="מה מטרת ההשקעה?">
                     <div className="choice" role="radiogroup" aria-label="מטרת ההשקעה">
-                        <button className={`btn choice__btn ${answers.goal === "SELF_CAPITAL" ? "is-selected" : ""}`} aria-pressed={answers.goal === "SELF_CAPITAL"} onClick={() => { setA("goal", "SELF_CAPITAL"); nextQuestion(); }}>1. הגדלת הון עצמי</button>
-                        <button className={`btn choice__btn ${answers.goal === "GOAL_EVENT" ? "is-selected" : ""}`} aria-pressed={answers.goal === "GOAL_EVENT"} onClick={() => { setA("goal", "GOAL_EVENT"); nextQuestion(); }}>2. מטרה מוגדרת (למשל: אירוע / רכישת רכב)</button>
-                        <button className={`btn choice__btn ${answers.goal === "PROPERTY" ? "is-selected" : ""}`} aria-pressed={answers.goal === "PROPERTY"} onClick={() => { setA("goal", "PROPERTY"); nextQuestion(); }}>3. רכישת נכס</button>
+                        <button className={`btn choice__btn ${answers.goal === "SELF_CAPITAL" ? "is-selected" : ""}`}
+                                aria-pressed={answers.goal === "SELF_CAPITAL"} onClick={() => {
+                            setA("goal", "SELF_CAPITAL");
+                            nextQuestion();
+                        }}>1. הגדלת הון עצמי
+                        </button>
+                        <button className={`btn choice__btn ${answers.goal === "GOAL_EVENT" ? "is-selected" : ""}`}
+                                aria-pressed={answers.goal === "GOAL_EVENT"} onClick={() => {
+                            setA("goal", "GOAL_EVENT");
+                            nextQuestion();
+                        }}>2. מטרה מוגדרת (למשל: אירוע / רכישת רכב)
+                        </button>
+                        <button className={`btn choice__btn ${answers.goal === "PROPERTY" ? "is-selected" : ""}`}
+                                aria-pressed={answers.goal === "PROPERTY"} onClick={() => {
+                            setA("goal", "PROPERTY");
+                            nextQuestion();
+                        }}>3. רכישת נכס
+                        </button>
                     </div>
                     <div className="hint">אפשר ללחוץ 1/2/3 לבחירה</div>
                 </Section>
@@ -307,8 +481,18 @@ function App() {
             return (
                 <Section title="האם יש לך קרן חירום?">
                     <div className="choice" role="radiogroup" aria-label="קרן חירום">
-                        <button className={`btn choice__btn ${answers.hasEmergencyFund === "YES" ? "is-selected" : ""}`} aria-pressed={answers.hasEmergencyFund === "YES"} onClick={() => { setA("hasEmergencyFund", "YES"); nextQuestion(); }}>1. כן</button>
-                        <button className={`btn choice__btn ${answers.hasEmergencyFund === "NO" ? "is-selected" : ""}`} aria-pressed={answers.hasEmergencyFund === "NO"} onClick={() => { setA("hasEmergencyFund", "NO"); nextQuestion(); }}>2. לא</button>
+                        <button className={`btn choice__btn ${answers.hasEmergencyFund === "YES" ? "is-selected" : ""}`}
+                                aria-pressed={answers.hasEmergencyFund === "YES"} onClick={() => {
+                            setA("hasEmergencyFund", "YES");
+                            nextQuestion();
+                        }}>1. כן
+                        </button>
+                        <button className={`btn choice__btn ${answers.hasEmergencyFund === "NO" ? "is-selected" : ""}`}
+                                aria-pressed={answers.hasEmergencyFund === "NO"} onClick={() => {
+                            setA("hasEmergencyFund", "NO");
+                            nextQuestion();
+                        }}>2. לא
+                        </button>
                     </div>
                     <div className="hint">אפשר ללחוץ 1/2 לבחירה</div>
                 </Section>
@@ -318,8 +502,20 @@ function App() {
             return (
                 <Section title="לשנות סכום לצורך קרן חירום?">
                     <div className="choice" role="radiogroup" aria-label="התאמת סכום לקרן חירום">
-                        <button className={`btn choice__btn ${answers.willingAdjustForEmergency === "YES" ? "is-selected" : ""}`} aria-pressed={answers.willingAdjustForEmergency === "YES"} onClick={() => { setA("willingAdjustForEmergency", "YES"); nextQuestion(); }}>1. כן</button>
-                        <button className={`btn choice__btn ${answers.willingAdjustForEmergency === "NO" ? "is-selected" : ""}`} aria-pressed={answers.willingAdjustForEmergency === "NO"} onClick={() => { setA("willingAdjustForEmergency", "NO"); nextQuestion(); }}>2. לא</button>
+                        <button
+                            className={`btn choice__btn ${answers.willingAdjustForEmergency === "YES" ? "is-selected" : ""}`}
+                            aria-pressed={answers.willingAdjustForEmergency === "YES"} onClick={() => {
+                            setA("willingAdjustForEmergency", "YES");
+                            nextQuestion();
+                        }}>1. כן
+                        </button>
+                        <button
+                            className={`btn choice__btn ${answers.willingAdjustForEmergency === "NO" ? "is-selected" : ""}`}
+                            aria-pressed={answers.willingAdjustForEmergency === "NO"} onClick={() => {
+                            setA("willingAdjustForEmergency", "NO");
+                            nextQuestion();
+                        }}>2. לא
+                        </button>
                     </div>
                     <div className="hint">אפשר ללחוץ 1/2 לבחירה</div>
                 </Section>
@@ -335,7 +531,9 @@ function App() {
                         placeholder="לדוגמה: 4"
                         value={answers.horizonYears}
                         onChange={(e) => setA("horizonYears", e.target.value.replace(/[^\d]/g, ""))}
-                        onKeyDown={(e) => { if (e.key === "Enter" && isCurrentAnswered()) nextQuestion(); }}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && isCurrentAnswered()) nextQuestion();
+                        }}
                     />
                     <div className="hint">אפשר ללחוץ Enter להמשך</div>
                 </Section>
@@ -345,8 +543,18 @@ function App() {
             return (
                 <Section title="האם יש לך ניסיון בהשקעות?">
                     <div className="choice" role="radiogroup" aria-label="ניסיון בהשקעות">
-                        <button className={`btn choice__btn ${answers.hasExperience === "YES" ? "is-selected" : ""}`} aria-pressed={answers.hasExperience === "YES"} onClick={() => { setA("hasExperience", "YES"); nextQuestion(); }}>1. כן</button>
-                        <button className={`btn choice__btn ${answers.hasExperience === "NO" ? "is-selected" : ""}`} aria-pressed={answers.hasExperience === "NO"} onClick={() => { setA("hasExperience", "NO"); nextQuestion(); }}>2. לא</button>
+                        <button className={`btn choice__btn ${answers.hasExperience === "YES" ? "is-selected" : ""}`}
+                                aria-pressed={answers.hasExperience === "YES"} onClick={() => {
+                            setA("hasExperience", "YES");
+                            nextQuestion();
+                        }}>1. כן
+                        </button>
+                        <button className={`btn choice__btn ${answers.hasExperience === "NO" ? "is-selected" : ""}`}
+                                aria-pressed={answers.hasExperience === "NO"} onClick={() => {
+                            setA("hasExperience", "NO");
+                            nextQuestion();
+                        }}>2. לא
+                        </button>
                     </div>
                     <div className="hint">אפשר ללחוץ 1/2 לבחירה</div>
                 </Section>
@@ -356,9 +564,25 @@ function App() {
             return (
                 <Section title="כיצד תגיב אם תראה הפסד בהשקעה?">
                     <div className="choice" role="radiogroup" aria-label="תגובה להפסד">
-                        <button className={`btn choice__btn ${answers.lossReaction === "PANIC" ? "is-selected" : ""}`} aria-pressed={answers.lossReaction === "PANIC"} onClick={() => { setA("lossReaction", "PANIC"); nextQuestion(); }}>1. אלחץ ואמכור</button>
-                        <button className={`btn choice__btn ${answers.lossReaction === "UNDERSTAND" ? "is-selected" : ""}`} aria-pressed={answers.lossReaction === "UNDERSTAND"} onClick={() => { setA("lossReaction", "UNDERSTAND"); nextQuestion(); }}>2. אבין ואשאיר</button>
-                        <button className={`btn choice__btn ${answers.lossReaction === "UNKNOWN" ? "is-selected" : ""}`} aria-pressed={answers.lossReaction === "UNKNOWN"} onClick={() => { setA("lossReaction", "UNKNOWN"); nextQuestion(); }}>3. לא יודע</button>
+                        <button className={`btn choice__btn ${answers.lossReaction === "PANIC" ? "is-selected" : ""}`}
+                                aria-pressed={answers.lossReaction === "PANIC"} onClick={() => {
+                            setA("lossReaction", "PANIC");
+                            nextQuestion();
+                        }}>1. אלחץ ואמכור
+                        </button>
+                        <button
+                            className={`btn choice__btn ${answers.lossReaction === "UNDERSTAND" ? "is-selected" : ""}`}
+                            aria-pressed={answers.lossReaction === "UNDERSTAND"} onClick={() => {
+                            setA("lossReaction", "UNDERSTAND");
+                            nextQuestion();
+                        }}>2. אבין ואשאיר
+                        </button>
+                        <button className={`btn choice__btn ${answers.lossReaction === "UNKNOWN" ? "is-selected" : ""}`}
+                                aria-pressed={answers.lossReaction === "UNKNOWN"} onClick={() => {
+                            setA("lossReaction", "UNKNOWN");
+                            nextQuestion();
+                        }}>3. לא יודע
+                        </button>
                     </div>
                     <div className="hint">אפשר ללחוץ 1/2/3 לבחירה</div>
                 </Section>
@@ -367,7 +591,7 @@ function App() {
         return null;
     };
 
-    const PersonalizedDetails = ({ rec }) => {
+    const PersonalizedDetails = ({rec}) => {
         const gmiCeilingFmt = new Intl.NumberFormat("he-IL").format(THRESH_GMI);
         const trackExplain = (t) => t?.includes("מנייתי")
             ? "מסלול מנייתי משקיע בעיקר במניות — פוטנציאל תשואה גבוה יותר לאורך זמן, אך גם תנודתיות גבוהה בדרך."
@@ -376,7 +600,7 @@ function App() {
                 : null;
         const allocationExplain = (a) => {
             if (!a) return null;
-            const parts=[];
+            const parts = [];
             if ("מניות" in a) parts.push("רכיב המניות יכול לנוע למעלה ולמטה, אך נוטה לתשואה גבוהה יותר בטווח הארוך.");
             if ("כללי" in a) parts.push("הרכיב הכללי יוצר איזון בין סיכון ליציבות.");
             if ("סולידי" in a) parts.push("הרכיב הסולידי שומר על יציבות ונזילות, עם תשואה צפויה נמוכה יותר.");
@@ -387,38 +611,57 @@ function App() {
         if (rec.product === "קופת גמל להשקעה") {
             return (
                 <div className="card card--elev center fade-in mt16">
-                    <div className="kpi-title" style={{textAlign:"center"}}>פירוט אישי</div>
-                    <p className="muted mt8" style={{textAlign:"center"}}>
-                        קופת גמל להשקעה היא מעטפת השקעה נזילה. אפשר להפקיד עד {gmiCeilingFmt} ₪ בכל שנת מס, למשוך בכל שלב או להמשיך לחיסכון לטווח ארוך; המיסוי חל רק על הרווח בעת משיכה.
+                    <div className="kpi-title" style={{textAlign: "center"}}>פירוט אישי</div>
+                    <p className="muted mt8" style={{textAlign: "center"}}>
+                        קופת גמל להשקעה היא מעטפת השקעה נזילה. אפשר להפקיד עד {gmiCeilingFmt} ₪ בכל שנת מס, למשוך בכל
+                        שלב או להמשיך לחיסכון לטווח ארוך; המיסוי חל רק על הרווח בעת משיכה.
                     </p>
-                    {rec.track && <p className="muted mt8" style={{textAlign:"center"}}><b>למה המסלול:</b> {trackExplain(rec.track) || rec.track}.</p>}
-                    {allocationExplain(rec.allocations) && <p className="muted mt8" style={{textAlign:"center"}}><b>איך זה בנוי:</b> {allocationExplain(rec.allocations)}</p>}
-                    {Number.isFinite(rec.horizon) && <p className="muted mt8" style={{textAlign:"center"}}><b>התאמה אליך:</b> אופק של {rec.horizon} שנים מתאים למטרה של {answers.goal==="SELF_CAPITAL"?"הגדלת הון עצמי":answers.goal==="GOAL_EVENT"?"מטרה מוגדרת":"רכישת נכס"} ומאפשר להתמודד עם תנודות.</p>}
-                    <div className="disclaimer" style={{textAlign:"center"}}>המידע הוא כללי ואינו מהווה ייעוץ השקעות או המלצה אישית.</div>
+                    {rec.track && <p className="muted mt8" style={{textAlign: "center"}}><b>למה
+                        המסלול:</b> {trackExplain(rec.track) || rec.track}.</p>}
+                    {allocationExplain(rec.allocations) &&
+                        <p className="muted mt8" style={{textAlign: "center"}}><b>איך זה
+                            בנוי:</b> {allocationExplain(rec.allocations)}</p>}
+                    {Number.isFinite(rec.horizon) &&
+                        <p className="muted mt8" style={{textAlign: "center"}}><b>התאמה אליך:</b> אופק
+                            של {rec.horizon} שנים מתאים למטרה
+                            של {answers.goal === "SELF_CAPITAL" ? "הגדלת הון עצמי" : answers.goal === "GOAL_EVENT" ? "מטרה מוגדרת" : "רכישת נכס"} ומאפשר
+                            להתמודד עם תנודות.</p>}
+                    <div className="disclaimer" style={{textAlign: "center"}}>המידע הוא כללי ואינו מהווה ייעוץ השקעות או
+                        המלצה אישית.
+                    </div>
                 </div>
             );
         }
         if (rec.product === "פוליסת חיסכון") {
             return (
                 <div className="card card--elev center fade-in mt16">
-                    <div className="kpi-title" style={{textAlign:"center"}}>פירוט אישי</div>
-                    <p className="muted mt8" style={{textAlign:"center"}}>
-                        פוליסת חיסכון היא מוצר השקעה דרך חברת ביטוח, ללא תקרת הפקדה שנתית — נוח כאשר הסכום גבוה מתקרת הגמל להשקעה. דמי הניהול תלויים בחברה ובמסלול.
+                    <div className="kpi-title" style={{textAlign: "center"}}>פירוט אישי</div>
+                    <p className="muted mt8" style={{textAlign: "center"}}>
+                        פוליסת חיסכון היא מוצר השקעה דרך חברת ביטוח, ללא תקרת הפקדה שנתית — נוח כאשר הסכום גבוה מתקרת
+                        הגמל להשקעה. דמי הניהול תלויים בחברה ובמסלול.
                     </p>
-                    {rec.allocations && <p className="muted mt8" style={{textAlign:"center"}}><b>איך התמהיל שהומלץ עובד:</b> {allocationExplain(rec.allocations)}</p>}
-                    {Number.isFinite(rec.horizon) && rec.horizon>0 && <p className="muted mt8" style={{textAlign:"center"}}><b>התאמה אליך:</b> אופק של {rec.horizon} שנים מתאים לשילוב בין צמיחה ליציבות לפי הנוחות שלך מתנודתיות.</p>}
-                    <div className="disclaimer" style={{textAlign:"center"}}>המידע הוא כללי ואינו מהווה ייעוץ השקעות או המלצה אישית.</div>
+                    {rec.allocations && <p className="muted mt8" style={{textAlign: "center"}}><b>איך התמהיל שהומלץ
+                        עובד:</b> {allocationExplain(rec.allocations)}</p>}
+                    {Number.isFinite(rec.horizon) && rec.horizon > 0 &&
+                        <p className="muted mt8" style={{textAlign: "center"}}><b>התאמה אליך:</b> אופק
+                            של {rec.horizon} שנים מתאים לשילוב בין צמיחה ליציבות לפי הנוחות שלך מתנודתיות.</p>}
+                    <div className="disclaimer" style={{textAlign: "center"}}>המידע הוא כללי ואינו מהווה ייעוץ השקעות או
+                        המלצה אישית.
+                    </div>
                 </div>
             );
         }
         if (rec.product === "השארת הכסף בבנק") {
             return (
                 <div className="card card--elev center fade-in mt16">
-                    <div className="kpi-title" style={{textAlign:"center"}}>פירוט אישי</div>
-                    <p className="muted mt8" style={{textAlign:"center"}}>
-                        כשאופק ההשקעה קצר, עדיף לשמור על נזילות ויציבות — פיקדון/חשבון חיסכון — כדי למזער סיכון לתנודות עד למועד השימוש בכסף.
+                    <div className="kpi-title" style={{textAlign: "center"}}>פירוט אישי</div>
+                    <p className="muted mt8" style={{textAlign: "center"}}>
+                        כשאופק ההשקעה קצר, עדיף לשמור על נזילות ויציבות — פיקדון/חשבון חיסכון — כדי למזער סיכון לתנודות
+                        עד למועד השימוש בכסף.
                     </p>
-                    <div className="disclaimer" style={{textAlign:"center"}}>המידע הוא כללי ואינו מהווה ייעוץ השקעות או המלצה אישית.</div>
+                    <div className="disclaimer" style={{textAlign: "center"}}>המידע הוא כללי ואינו מהווה ייעוץ השקעות או
+                        המלצה אישית.
+                    </div>
                 </div>
             );
         }
@@ -430,8 +673,8 @@ function App() {
         if (rec.error) {
             return (
                 <div className="card card--elev center fade-in">
-                    <div className="kpi-title" style={{textAlign:"center"}}>שגיאה בחישוב</div>
-                    <p className="muted" style={{textAlign:"center"}}>{rec.error}</p>
+                    <div className="kpi-title" style={{textAlign: "center"}}>שגיאה בחישוב</div>
+                    <p className="muted" style={{textAlign: "center"}}>{rec.error}</p>
                     <div className="actions mt12">
                         <button className="btn" onClick={() => setStep(1)}>חזרה לשאלון</button>
                     </div>
@@ -442,7 +685,7 @@ function App() {
             <div className="card card--elev center fade-in">
                 <h2 className="section-title">תוצאה מסכמת</h2>
                 {/* ברירת מחדל עמודה אחת; נפתח לשתיים רק במסכים ממש רחבים */}
-                <div className="grid grid--1 lg-2" style={{textAlign:"right"}}>
+                <div className="grid grid--1 lg-2" style={{textAlign: "right"}}>
                     <div>
                         <div className="kpi-title">מוצר מומלץ</div>
                         <div className="kpi-value">{rec.product}</div>
@@ -455,22 +698,30 @@ function App() {
                             <div>
                                 <div className="kpi-title">הקצאת נכסים מוצעת</div>
                                 <ul className="muted mt8">
-                                    {Object.entries(rec.allocations).map(([k,v]) => <li key={k}>{k}: {v}%</li>)}
+                                    {Object.entries(rec.allocations).map(([k, v]) => <li key={k}>{k}: {v}%</li>)}
                                 </ul>
                             </div>
                         )}
-                        {rec.notes?.length>0 && (
+                        {rec.notes?.length > 0 && (
                             <div className="mt12">
                                 <div className="kpi-title">הערות</div>
-                                <ul className="muted mt8">{rec.notes.map((n,i)=><li key={i}>{n}</li>)}</ul>
+                                <ul className="muted mt8">{rec.notes.map((n, i) => <li key={i}>{n}</li>)}</ul>
                             </div>
                         )}
                     </div>
                 </div>
                 <PersonalizedDetails rec={rec}/>
                 <div className="actions mt16">
-                    <button className="btn" onClick={() => { setStep(1); setQIndex(0); }}>חזרה לשאלון</button>
-                    <button className="btn" onClick={() => { setStep(0); setQIndex(0); }}>התחלה מחדש</button>
+                    <button className="btn" onClick={() => {
+                        setStep(1);
+                        setQIndex(0);
+                    }}>חזרה לשאלון
+                    </button>
+                    <button className="btn" onClick={() => {
+                        setStep(0);
+                        setQIndex(0);
+                    }}>התחלה מחדש
+                    </button>
                 </div>
             </div>
         );
@@ -502,11 +753,13 @@ function App() {
                             <div className="grid grid--1 md-2 mt12">
                                 <div>
                                     <label className="kpi-title">מספר טלפון</label>
-                                    <input className="input input--lg" placeholder="הקלד מספר טלפון" value={phoneNumber} onChange={(e)=>setPhoneNumber(e.target.value)} />
+                                    <input className="input input--lg" placeholder="הקלד מספר טלפון" value={phoneNumber}
+                                           onChange={(e) => setPhoneNumber(e.target.value)}/>
                                 </div>
                                 <div>
                                     <label className="kpi-title">שם מלא</label>
-                                    <input className="input input--lg" placeholder="הקלד שם" value={name} onChange={(e)=>setName(e.target.value)} />
+                                    <input className="input input--lg" placeholder="הקלד שם" value={name}
+                                           onChange={(e) => setName(e.target.value)}/>
                                 </div>
                             </div>
                             <div className="actions mt16">
@@ -514,8 +767,18 @@ function App() {
                                     className="btn btn--primary"
                                     disabled={!phoneNumber || !name}
                                     onClick={async () => {
-                                        try { const res = await axios.get("/fm1/add-user", { params: { phone: phoneNumber, name } }); setUserId(res.data?.value ?? null); } catch {}
-                                        setStep(1); setQIndex(0);
+                                        try {
+                                            const res = await axios.get("/fm1/add-user", {
+                                                params: {
+                                                    phone: phoneNumber,
+                                                    name
+                                                }
+                                            });
+                                            setUserId(res.data?.value ?? null);
+                                        } catch {
+                                        }
+                                        setStep(1);
+                                        setQIndex(0);
                                     }}
                                 >
                                     התחל שאלון
@@ -526,24 +789,29 @@ function App() {
 
                     {step === 1 && (
                         <div className="wizard fade-in">
-                            <Stepper />
-                            <div className="mt12" />
+                            <Stepper/>
+                            <div className="mt12"/>
                             <div className="wizard__panel">
-                                <QuestionScreen />
-                                <div className="muted mt6" style={{textAlign:"center"}}>שאלה {qIndex + 1} מתוך {flow.length}</div>
+                                <QuestionScreen/>
+                                <div className="muted mt6"
+                                     style={{textAlign: "center"}}>שאלה {qIndex + 1} מתוך {flow.length}</div>
                                 <div className="actions mt8">
-                                    <button className="btn" onClick={() => setQIndex((i)=>Math.max(i-1,0))} disabled={qIndex===0}>הקודם</button>
+                                    <button className="btn" onClick={() => setQIndex((i) => Math.max(i - 1, 0))}
+                                            disabled={qIndex === 0}>הקודם
+                                    </button>
                                     {qIndex < flow.length - 1 ? (
-                                        <button className="btn btn--primary" onClick={() => setQIndex((i)=>i+1)} disabled={!isCurrentAnswered()}>הבא</button>
+                                        <button className="btn btn--primary" onClick={() => setQIndex((i) => i + 1)}
+                                                disabled={!isCurrentAnswered()}>הבא</button>
                                     ) : (
-                                        <button className="btn btn--primary" onClick={submitAnswers} disabled={!isCurrentAnswered()}>סיום וניתוח</button>
+                                        <button className="btn btn--primary" onClick={submitAnswers}
+                                                disabled={!isCurrentAnswered()}>סיום וניתוח</button>
                                     )}
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {step === 2 && <ResultCard />}
+                    {step === 2 && <ResultCard/>}
                 </div>
             </main>
         </div>
