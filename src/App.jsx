@@ -8,6 +8,24 @@ function App() {
     const [name, setName] = useState("");
     const [userId, setUserId] = useState(null);
 
+    // touched לשדות מסך פתיחה (להצגת שגיאות רק כשצריך)
+    const [touchedPhone, setTouchedPhone] = useState(false);
+    const [touchedName, setTouchedName] = useState(false);
+
+    // ולידציה: טלפון 10 ספרות בדיוק
+    const isPhoneValid = useMemo(() => /^\d{10}$/.test(phoneNumber), [phoneNumber]);
+
+    // ולידציה: שם = רק אותיות (עברית/אנגלית), לפחות שתי מילים, ולכל מילה ≥ 2 אותיות
+    const isNameValid = useMemo(() => {
+        const words = name.trim().split(/\s+/).filter(Boolean);
+        if (words.length < 2) return false;
+        return words.every(w => /^[A-Za-z\u0590-\u05FF]{2,}$/.test(w));
+    }, [name]);
+
+    // הודעות שגיאה (קצרות; מוצגות רק אחרי blur או אם יש כבר תוכן לא תקין)
+    const phoneError = (touchedPhone || phoneNumber.length > 0) && !isPhoneValid ? "מספר טלפון לא תקין" : "";
+    const nameError  = (touchedName  || name.length > 0)         && !isNameValid  ? "שם מלא לא תקין"       : "";
+
     const [answers, setAnswers] = useState({
         amount: "",
         splitNextYear: "",
@@ -86,34 +104,22 @@ function App() {
     // הקצאות לפוליסה
     const allocationsPolicyMid = (s) => {
         switch (s) {
-            case 5:
-                return {מניות: 20, כללי: 80};
-            case 4:
-                return {כללי: 100};
-            case 3:
-                return {כללי: 80, סולידי: 20};
-            case 2:
-                return {כללי: 50, סולידי: 50};
-            case 1:
-                return {כללי: 20, סולידי: 80};
-            default:
-                return null;
+            case 5: return {מניות: 20, כללי: 80};
+            case 4: return {כללי: 100};
+            case 3: return {כללי: 80, סולידי: 20};
+            case 2: return {כללי: 50, סולידי: 50};
+            case 1: return {כללי: 20, סולידי: 80};
+            default: return null;
         }
     };
     const allocationsPolicyLong = (s) => {
         switch (s) {
-            case 5:
-                return {מניות: 60, "S&P 500": 40};
-            case 4:
-                return {מניות: 80, כללי: 20};
-            case 3:
-                return {מניות: 50, כללי: 50};
-            case 2:
-                return {כללי: 80, סולידי: 20};
-            case 1:
-                return {כללי: 50, סולידי: 50};
-            default:
-                return null;
+            case 5: return {מניות: 60, "S&P 500": 40};
+            case 4: return {מניות: 80, כללי: 20};
+            case 3: return {מניות: 50, כללי: 50};
+            case 2: return {כללי: 80, סולידי: 20};
+            case 1: return {כללי: 50, סולידי: 50};
+            default: return null;
         }
     };
 
@@ -272,72 +278,30 @@ function App() {
             if (["1", "2", "3"].includes(e.key)) {
                 const i = Number(e.key) - 1;
                 if (currentKey === "splitNextYear") {
-                    if (i === 0) {
-                        setA("splitNextYear", "YES");
-                        nextQuestion();
-                    }
-                    if (i === 1) {
-                        setA("splitNextYear", "NO");
-                        nextQuestion();
-                    }
+                    if (i === 0) { setA("splitNextYear", "YES"); nextQuestion(); }
+                    if (i === 1) { setA("splitNextYear", "NO");  nextQuestion(); }
                 }
                 if (currentKey === "goal") {
-                    if (i === 0) {
-                        setA("goal", "SELF_CAPITAL");
-                        nextQuestion();
-                    }
-                    if (i === 1) {
-                        setA("goal", "GOAL_EVENT");
-                        nextQuestion();
-                    }
-                    if (i === 2) {
-                        setA("goal", "PROPERTY");
-                        nextQuestion();
-                    }
+                    if (i === 0) { setA("goal", "SELF_CAPITAL"); nextQuestion(); }
+                    if (i === 1) { setA("goal", "GOAL_EVENT");   nextQuestion(); }
+                    if (i === 2) { setA("goal", "PROPERTY");     nextQuestion(); }
                 }
                 if (currentKey === "hasEmergencyFund") {
-                    if (i === 0) {
-                        setA("hasEmergencyFund", "YES");
-                        nextQuestion();
-                    }
-                    if (i === 1) {
-                        setA("hasEmergencyFund", "NO");
-                        nextQuestion();
-                    }
+                    if (i === 0) { setA("hasEmergencyFund", "YES"); nextQuestion(); }
+                    if (i === 1) { setA("hasEmergencyFund", "NO");  nextQuestion(); }
                 }
                 if (currentKey === "willingAdjustForEmergency") {
-                    if (i === 0) {
-                        setA("willingAdjustForEmergency", "YES");
-                        nextQuestion();
-                    }
-                    if (i === 1) {
-                        setA("willingAdjustForEmergency", "NO");
-                        nextQuestion();
-                    }
+                    if (i === 0) { setA("willingAdjustForEmergency", "YES"); nextQuestion(); }
+                    if (i === 1) { setA("willingAdjustForEmergency", "NO");  nextQuestion(); }
                 }
                 if (currentKey === "hasExperience") {
-                    if (i === 0) {
-                        setA("hasExperience", "YES");
-                        nextQuestion();
-                    }
-                    if (i === 1) {
-                        setA("hasExperience", "NO");
-                        nextQuestion();
-                    }
+                    if (i === 0) { setA("hasExperience", "YES"); nextQuestion(); }
+                    if (i === 1) { setA("hasExperience", "NO");  nextQuestion(); }
                 }
                 if (currentKey === "lossReaction") {
-                    if (i === 0) {
-                        setA("lossReaction", "PANIC");
-                        nextQuestion();
-                    }
-                    if (i === 1) {
-                        setA("lossReaction", "UNDERSTAND");
-                        nextQuestion();
-                    }
-                    if (i === 2) {
-                        setA("lossReaction", "UNKNOWN");
-                        nextQuestion();
-                    }
+                    if (i === 0) { setA("lossReaction", "PANIC");      nextQuestion(); }
+                    if (i === 1) { setA("lossReaction", "UNDERSTAND"); nextQuestion(); }
+                    if (i === 2) { setA("lossReaction", "UNKNOWN");    nextQuestion(); }
                 }
             }
             if (e.key === "Backspace" && !String(getCurrentValue()).length) prevQuestion();
@@ -348,24 +312,15 @@ function App() {
 
     const getCurrentValue = () => {
         switch (currentKey) {
-            case "amount":
-                return answers.amount;
-            case "splitNextYear":
-                return answers.splitNextYear;
-            case "goal":
-                return answers.goal;
-            case "hasEmergencyFund":
-                return answers.hasEmergencyFund;
-            case "willingAdjustForEmergency":
-                return answers.willingAdjustForEmergency;
-            case "horizonYears":
-                return answers.horizonYears;
-            case "hasExperience":
-                return answers.hasExperience;
-            case "lossReaction":
-                return answers.lossReaction;
-            default:
-                return "";
+            case "amount": return answers.amount;
+            case "splitNextYear": return answers.splitNextYear;
+            case "goal": return answers.goal;
+            case "hasEmergencyFund": return answers.hasEmergencyFund;
+            case "willingAdjustForEmergency": return answers.willingAdjustForEmergency;
+            case "horizonYears": return answers.horizonYears;
+            case "hasExperience": return answers.hasExperience;
+            case "lossReaction": return answers.lossReaction;
+            default: return "";
         }
     };
 
@@ -375,9 +330,7 @@ function App() {
             await axios.post(
                 `http://localhost:9030/fm1/submit?userId=${encodeURIComponent(userId)}`,
                 { answers, recommendation }, // raw JSON body
-                {
-                    headers: { "Content-Type": "application/json" }
-                }
+                { headers: { "Content-Type": "application/json" } }
             );
         } catch (err) {
             console.error(err);
@@ -753,30 +706,63 @@ function App() {
                             <div className="grid grid--1 md-2 mt12">
                                 <div>
                                     <label className="kpi-title">מספר טלפון</label>
-                                    <input className="input input--lg" placeholder="הקלד מספר טלפון" value={phoneNumber}
-                                           onChange={(e) => setPhoneNumber(e.target.value)}/>
+                                    <input
+                                        className="input input--lg"
+                                        placeholder="הקלד מספר טלפון"
+                                        value={phoneNumber}
+                                        inputMode="numeric"
+                                        maxLength={10}
+                                        aria-invalid={!!phoneError}
+                                        onChange={(e) => {
+                                            const onlyDigits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                                            setPhoneNumber(onlyDigits);
+                                        }}
+                                        onBlur={() => setTouchedPhone(true)}
+                                    />
+                                    {phoneError && (
+                                        <div className="muted" style={{ color: "#c62828", marginTop: 4 }}>
+                                            {phoneError}
+                                        </div>
+                                    )}
                                 </div>
                                 <div>
                                     <label className="kpi-title">שם מלא</label>
-                                    <input className="input input--lg" placeholder="הקלד שם" value={name}
-                                           onChange={(e) => setName(e.target.value)}/>
+                                    <input
+                                        className="input input--lg"
+                                        placeholder="הקלד שם"
+                                        value={name}
+                                        aria-invalid={!!nameError}
+                                        onChange={(e) => {
+                                            // שומר אותיות (עברית/אנגלית) ורווחים בלבד
+                                            const cleaned = e.target.value.replace(/[^A-Za-z\u0590-\u05FF\s]/g, "");
+                                            setName(cleaned);
+                                        }}
+                                        onBlur={() => setTouchedName(true)}
+                                    />
+                                    {nameError && (
+                                        <div className="muted" style={{ color: "#c62828", marginTop: 4 }}>
+                                            {nameError}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <div className="actions mt16">
                                 <button
                                     className="btn btn--primary"
-                                    disabled={!phoneNumber || !name}
+                                    disabled={!isPhoneValid || !isNameValid}
                                     onClick={async () => {
+                                        if (!isPhoneValid || !isNameValid) return;
+
+                                        // נרמול לפני שליחה
+                                        const normalizedPhone = phoneNumber.replace(/\D/g, "").slice(0, 10);
+                                        const normalizedName  = name.trim().replace(/\s+/g, " ");
+
                                         try {
                                             const res = await axios.get("/fm1/add-user", {
-                                                params: {
-                                                    phone: phoneNumber,
-                                                    name
-                                                }
+                                                params: { phone: normalizedPhone, name: normalizedName }
                                             });
                                             setUserId(res.data?.value ?? null);
-                                        } catch {
-                                        }
+                                        } catch {}
                                         setStep(1);
                                         setQIndex(0);
                                     }}
@@ -793,18 +779,13 @@ function App() {
                             <div className="mt12"/>
                             <div className="wizard__panel">
                                 <QuestionScreen/>
-                                <div className="muted mt6"
-                                     style={{textAlign: "center"}}>שאלה {qIndex + 1} מתוך {flow.length}</div>
+                                <div className="muted mt6" style={{textAlign: "center"}}>שאלה {qIndex + 1} מתוך {flow.length}</div>
                                 <div className="actions mt8">
-                                    <button className="btn" onClick={() => setQIndex((i) => Math.max(i - 1, 0))}
-                                            disabled={qIndex === 0}>הקודם
-                                    </button>
+                                    <button className="btn" onClick={() => setQIndex((i) => Math.max(i - 1, 0))} disabled={qIndex === 0}>הקודם</button>
                                     {qIndex < flow.length - 1 ? (
-                                        <button className="btn btn--primary" onClick={() => setQIndex((i) => i + 1)}
-                                                disabled={!isCurrentAnswered()}>הבא</button>
+                                        <button className="btn btn--primary" onClick={() => setQIndex((i) => i + 1)} disabled={!isCurrentAnswered()}>הבא</button>
                                     ) : (
-                                        <button className="btn btn--primary" onClick={submitAnswers}
-                                                disabled={!isCurrentAnswered()}>סיום וניתוח</button>
+                                        <button className="btn btn--primary" onClick={submitAnswers} disabled={!isCurrentAnswered()}>סיום וניתוח</button>
                                     )}
                                 </div>
                             </div>
