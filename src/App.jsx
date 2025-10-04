@@ -7,6 +7,7 @@ function App() {
     const [phoneNumber, setPhoneNumber] = useState("");
     const [name, setName] = useState("");
     const [userId, setUserId] = useState(null);
+    const [aiResponse, setAiResponse] = useState("");
 
     // touched לשדות מסך פתיחה (להצגת שגיאות רק כשצריך)
     const [touchedPhone, setTouchedPhone] = useState(false);
@@ -561,6 +562,19 @@ function App() {
             return parts.join(" ");
         };
 
+        if (aiResponse && aiResponse.length > 0) {
+            return (
+                <div className="card card--elev center fade-in mt16">
+                    <div className="kpi-title" style={{textAlign: "center"}}>פירוט אישי</div>
+                    <p className="muted mt8" style={{textAlign: "center"}}>
+                        {aiResponse}
+                    </p>
+                    <div className="disclaimer" style={{textAlign: "center"}}>המידע הוא כללי ואינו מהווה ייעוץ השקעות או
+                        המלצה אישית.
+                    </div>
+                </div>
+            )
+        }
         if (rec.product === "קופת גמל להשקעה") {
             return (
                 <div className="card card--elev center fade-in mt16">
@@ -621,8 +635,55 @@ function App() {
         return null;
     };
 
+
     const ResultCard = () => {
         const rec = computeRecommendation();
+
+        // Helper function to format answer labels
+        const getAnswerLabel = (key, value) => {
+            const labels = {
+                amount: "סכום להשקעה",
+                splitNextYear: "פריסה לשנה הבאה",
+                goal: "מטרת ההשקעה",
+                horizonYears: "אופק זמן",
+                hasEmergencyFund: "קרן חירום",
+                willingAdjustForEmergency: "נכונות להפריש לקרן חירום",
+                hasExperience: "ניסיון בהשקעות",
+                lossReaction: "תגובה להפסד"
+            };
+            return labels[key] || key;
+        };
+
+        const getAnswerValue = (key, value) => {
+            if (!value) return "—";
+
+            const valueLabels = {
+                splitNextYear: { YES: "כן", NO: "לא" },
+                goal: {
+                    SELF_CAPITAL: "הגדלת הון עצמי",
+                    GOAL_EVENT: "מטרה מוגדרת",
+                    PROPERTY: "רכישת נכס"
+                },
+                hasEmergencyFund: { YES: "כן", NO: "לא" },
+                willingAdjustForEmergency: { YES: "כן", NO: "לא" },
+                hasExperience: { YES: "כן", NO: "לא" },
+                lossReaction: {
+                    PANIC: "אלחץ ואמכור",
+                    UNDERSTAND: "אבין ואשאיר",
+                    UNKNOWN: "לא יודע"
+                }
+            };
+
+            if (key === "amount") {
+                const num = parseAmount(value);
+                return Number.isFinite(num) ? `₪${new Intl.NumberFormat("he-IL").format(num)}` : value;
+            }
+            if (key === "horizonYears") {
+                return `${value} שנים`;
+            }
+            return valueLabels[key]?.[value] || value;
+        };
+
         if (rec.error) {
             return (
                 <div className="card card--elev center fade-in">
@@ -635,48 +696,91 @@ function App() {
             );
         }
         return (
-            <div className="card card--elev center fade-in">
-                <h2 className="section-title">תוצאה מסכמת</h2>
-                {/* ברירת מחדל עמודה אחת; נפתח לשתיים רק במסכים ממש רחבים */}
-                <div className="grid grid--1 lg-2" style={{textAlign: "right"}}>
-                    <div>
-                        <div className="kpi-title">מוצר מומלץ</div>
-                        <div className="kpi-value">{rec.product}</div>
-                        {rec.track && <div className="muted mt4">מסלול: {rec.track}</div>}
-                        {Number.isFinite(rec.horizon) && <div className="muted mt4">אופק: {rec.horizon} שנים</div>}
-                        {rec.reason && <div className="muted mt8">{rec.reason}</div>}
-                    </div>
-                    <div>
-                        {rec.allocations && (
-                            <div>
-                                <div className="kpi-title">הקצאת נכסים מוצעת</div>
-                                <ul className="muted mt8">
-                                    {Object.entries(rec.allocations).map(([k, v]) => <li key={k}>{k}: {v}%</li>)}
-                                </ul>
-                            </div>
-                        )}
-                        {rec.notes?.length > 0 && (
-                            <div className="mt12">
-                                <div className="kpi-title">הערות</div>
-                                <ul className="muted mt8">{rec.notes.map((n, i) => <li key={i}>{n}</li>)}</ul>
-                            </div>
-                        )}
+            <>
+                {/* User's Answers Summary */}
+                <div className="card card--elev center fade-in mb16">
+                    <h2 className="section-title">סיכום התשובות שלך</h2>
+                    <div className="grid grid--1 md-2 mt12" style={{textAlign: "right", gap: "16px"}}>
+                        {Object.entries(answers)
+                            .filter(([key, value]) => value && flow.includes(key))
+                            .map(([key, value]) => (
+                                <div key={key} style={{padding: "8px 0"}}>
+                                    <div className="kpi-title" style={{fontSize: "0.9rem", marginBottom: "4px"}}>
+                                        {getAnswerLabel(key)}
+                                    </div>
+                                    <div className="muted" style={{fontSize: "1rem"}}>
+                                        {getAnswerValue(key, value)}
+                                    </div>
+                                </div>
+                            ))}
                     </div>
                 </div>
-                <PersonalizedDetails rec={rec}/>
-                <div className="actions mt16">
-                    <button className="btn" onClick={() => {
-                        setStep(1);
-                        setQIndex(0);
-                    }}>חזרה לשאלון
-                    </button>
-                    <button className="btn" onClick={() => {
-                        setStep(0);
-                        setQIndex(0);
-                    }}>התחלה מחדש
-                    </button>
+
+                <div className="card card--elev center fade-in">
+                    <h2 className="section-title">תוצאה מסכמת</h2>
+                    <div className="grid grid--1 lg-2" style={{textAlign: "right"}}>
+                        <div>
+                            <div className="kpi-title">מוצר מומלץ</div>
+                            <div className="kpi-value">{rec.product}</div>
+                            {rec.track && <div className="muted mt4">מסלול: {rec.track}</div>}
+                            {Number.isFinite(rec.horizon) && <div className="muted mt4">אופק: {rec.horizon} שנים</div>}
+                            {rec.reason && <div className="muted mt8">{rec.reason}</div>}
+                        </div>
+                        <div>
+                            {rec.allocations && (
+                                <div>
+                                    <div className="kpi-title">הקצאת נכסים מוצעת</div>
+                                    <ul className="muted mt8">
+                                        {Object.entries(rec.allocations).map(([k, v]) => <li key={k}>{k}: {v}%</li>)}
+                                    </ul>
+                                </div>
+                            )}
+                            {rec.notes?.length > 0 && (
+                                <div className="mt12">
+                                    <div className="kpi-title">הערות</div>
+                                    <ul className="muted mt8">{rec.notes.map((n, i) => <li key={i}>{n}</li>)}</ul>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <PersonalizedDetails rec={rec}/>
+                    <div className="actions mt16">
+                        <button className="btn" onClick={() => {
+                            setStep(1);
+                            setQIndex(0);
+                        }}>חזרה לשאלון
+                        </button>
+                        <button className="btn" onClick={() => {
+                            setStep(0);
+                            setQIndex(0);
+                        }}>התחלה מחדש
+                        </button>
+                        <button className="btn btn--primary" onClick={async () => {
+                            try {
+                                const response = await axios.post(
+                                    "http://localhost:9030/fm1/summary",
+                                    {
+                                        userId,
+                                        phoneNumber,
+                                        name,
+                                        answers,
+                                        recommendation: rec
+                                    },
+                                    { headers: { "Content-Type": "application/json" } }
+                                );
+                                setAiResponse(response.data.value)
+                                alert("הסיכום נשלח בהצלחה!");
+                            } catch (err) {
+                                console.error(err);
+                                alert("שגיאה בשליחת הסיכום");
+                            }
+                        }}>
+                           קבל המלצה מפורטת
+
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </>
         );
     };
 
